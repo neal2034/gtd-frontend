@@ -1,0 +1,105 @@
+name: Build
+
+on:
+  push:
+    branches: [dev, main]
+
+  workflow_dispatch:
+
+env:
+  DOCKER_SERVER: registry.cn-hangzhou.aliyuncs.com
+  DOCKER_NAMESPACE: neal2034
+  DOCKER_REPOSITORY: todo-frontend
+  DEV_BRANCH_NAME: dev
+  DEV_DOCKER_CONTAINER_NAME: todo-frontend
+
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: contains(github.event.commits[0].message, 'skip build') == false
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      container_name: ${{ steps.env.outputs.container_name }}
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - name: Get Env
+        id: env
+        run: |
+          echo "environment=dev" >> $GITHUB_OUTPUT
+          echo "container_name=$DEV_DOCKER_CONTAINER_NAME" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v3
+        with:
+          cache: pnpm
+          node-version: '18'
+      - run: pnpm i --silent
+      - uses: actions/cache@v3
+        with:
+          path: node_modules/.cache/babel-loader
+          key: ${{ runner.os }}-babel-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Build
+        run: node build/script/build.js
+        env:
+          REACT_APP_SERVER_ENV: production
+
+      - uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.DOCKER_SERVER }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - uses: docker/metadata-action@v4
+        id: meta
+        with:
+          flavor: latest=false
+          images: |
+            ${{ env.DOCKER_SERVER }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_REPOSITORY }}
+          tags: |
+            type=semver,pattern={{ version }}
+            type=raw,value=production,enable=true
+      - uses: docker/setup-buildx-action@v2
+      - uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./build/docker/Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha,scope=ui
+          cache-to: type=gha,scope=ui,mode=max
+          provenance: false
+          push: true
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: contains(github.event.commits[0].message, 'skip release') == false
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Compose Docker Command
+        uses: neal2034/gitactions/docker-run-cmd@master
+        id: docker
+        with:
+          name: ${{ needs.build.outputs.container_name }}
+          image: ${{ env.DOCKER_SERVER }}/${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_REPOSITORY }}:${{ needs.build.outputs.version }}
+
+      - name: Deploy To Dev
+        uses: neal2034/gitactions/ssh-action@master
+        with:
+          key: ${{ secrets.DEV_HOST_PRIVATE_KEY }}
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          script: ${{ steps.docker.outputs.cmd }}
+
+
+      - name: Notify
+        uses: neal2034/gitactions/slack-notification@master
+        if: always()
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          status: ${{ job.status }}
