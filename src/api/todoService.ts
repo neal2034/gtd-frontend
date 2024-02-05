@@ -11,7 +11,7 @@ export async function listAllTodo(isDone = false): Promise<APIResponse> {
 }
 
 export async function deleteTodo(id: number): Promise<APIResponse> {
-    return request.delete(`/todo/id=${id}`)
+    return request.delete(`/todo/?id=${id}`)
 }
 
 export async function updateTodo(todo: Partial<TodoT>): Promise<APIResponse> {

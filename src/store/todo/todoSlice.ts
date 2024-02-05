@@ -2,7 +2,7 @@ import { EntityState, createSlice } from '@reduxjs/toolkit'
 import { TodoT } from '@src/typing/todo'
 import todoEntityAdapter from './todoEntityAdapter'
 import { RootState } from '../store'
-import { listAllTodo, addTodo, doneTodo } from './todoActions'
+import { listAllTodo, addTodo, doneTodo, updateTodo, deleteTodo } from './todoActions'
 
 
 
@@ -23,6 +23,12 @@ const todoSlice = createSlice({
             }),
             builder.addCase(doneTodo.fulfilled, (state, action) => {
                 todoEntityAdapter.removeOne(state, action.payload.data.id as number)
+            }),
+            builder.addCase(deleteTodo.fulfilled, (state, action) => {
+                todoEntityAdapter.removeOne(state, action.payload.data.id as number)
+            }),
+            builder.addCase(updateTodo.fulfilled, (state, action) => {
+                todoEntityAdapter.updateOne(state, { id: action.payload.data.id as number, changes: action.payload.data })
             })
     }
 })

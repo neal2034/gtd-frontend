@@ -2,7 +2,7 @@ import Iconify from "@components/Iconify";
 import MenuPopover from "@components/MenuPopover";
 import useDispatch from "@hooks/useDispatch";
 import { Checkbox, Grid, IconButton, MenuItem, Paper, Typography } from "@mui/material";
-import { doneTodo } from "@src/store/todo/todoActions";
+import { doneTodo, deleteTodo } from "@src/store/todo/todoActions";
 import { TodoT } from "@src/typing/todo";
 import { fDate } from "@utils/formatTime";
 import { useState } from "react";
@@ -10,25 +10,29 @@ import { useState } from "react";
 
 interface ITodoItemProps {
     todo: TodoT
+    onEdit?: (todo: TodoT) => void
 }
 export default function TodoItem(props: ITodoItemProps) {
-    const { todo } = props
+    const { todo, onEdit } = props
     const dispatch = useDispatch()
     const [open, setOpen] = useState<HTMLElement | null>(null);
 
     const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
-
         setOpen(event.currentTarget);
     };
     const handleClose = () => {
         setOpen(null);
     };
     const handleEdit = () => {
-        alert('edit')
+        onEdit?.(todo)
+        handleClose()
     }
 
-    const handleDelete = () => {
-        alert('del')
+    const handleDelete = async () => {
+        if (todo.id) {
+            await dispatch(deleteTodo(todo.id))
+        }
+        handleClose()
     }
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked && todo.id) {
@@ -75,7 +79,7 @@ export default function TodoItem(props: ITodoItemProps) {
             </Grid>
             <Grid xs={6} sm={2} display={'flex'} justifyContent={'end'} >
                 <Typography variant="caption" sx={{ color: 'text.disabled', mr: 2, }}>
-                    {fDate(todo.due)}
+                    {fDate(todo.due as string)}
                 </Typography>
             </Grid>
         </Grid>

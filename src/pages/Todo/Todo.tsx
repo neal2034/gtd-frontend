@@ -10,6 +10,7 @@ import { listAllTodo } from '@src/store/todo/todoActions'
 import useSelector from "@hooks/useSelector";
 import { todoSelectors } from "@src/store/todo/todoSlice";
 import TodoItem from "./ToDoItem";
+import { TodoT } from "@src/typing/todo";
 
 
 export default function TodoPage() {
@@ -17,6 +18,7 @@ export default function TodoPage() {
     const dlg = useDialog(false)
     const todos = useSelector(todoSelectors.selectAll)
     const [isLoading, setIsLoading] = useState(true)
+    const [editingTodo, setEditingTodo] = useState<TodoT>()
     console.log(todos, "is todos")
     useEffect(() => {
         const init = async function () {
@@ -27,8 +29,14 @@ export default function TodoPage() {
 
     }, [])
     const handleAddTodo = () => {
+        setEditingTodo(undefined)
         dlg.open()
     }
+    const handleEdit = (todo: TodoT) => {
+        setEditingTodo(todo)
+        dlg.open()
+    }
+
     return <Page title="ToDo" >
         <Container  >
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -36,8 +44,6 @@ export default function TodoPage() {
                     <AddCircleIcon color="primary" sx={{ width: 30, height: 30 }} />
                 </IconButton>
             </Box>
-
-
             <Card sx={{
                 mb: 3,
                 minHeight: '100vh',
@@ -48,12 +54,12 @@ export default function TodoPage() {
                 </Box>}
                 {todos.length === 0 && !isLoading && <EmptyContent title="没有数据" description="没有待办事项，点击右上方按钮添加" />}
                 <Stack spacing={2}>
-                    {todos.map(item => <TodoItem todo={item} />)}
+                    {todos.map(item => <TodoItem onEdit={handleEdit} todo={item} />)}
                 </Stack>
 
             </Card>
 
         </Container>
-        <TodoEditDialog dlg={dlg} />
+        <TodoEditDialog todo={editingTodo} dlg={dlg} />
     </Page>
 }
