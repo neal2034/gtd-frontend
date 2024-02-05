@@ -102,7 +102,7 @@ export default function TodoEditDialog(props: ITodoEditDlgProps) {
                         loading={isSubmitting}
                         loadingIndicator="Loading..."
                     >
-                        Add
+                        Confirm
                     </LoadingButton>
                 </DialogActions>
 

@@ -83,7 +83,7 @@ export default function AccountPopover() {
         }}
       >
         <MenuItem onClick={handleLogout} sx={{ m: 1 }}>
-          注销
+          Log out
         </MenuItem>
       </MenuPopover>
     </>
