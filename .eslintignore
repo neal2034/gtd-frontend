@@ -1,0 +1,14 @@
+/node_modules
+ 
+
+# testing
+/coverage
+
+# production
+/build
+
+# build
+dist
+
+# docs
+/build-docs
