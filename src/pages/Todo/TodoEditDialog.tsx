@@ -34,7 +34,7 @@ export default function TodoEditDialog(props: ITodoEditDlgProps) {
     const { dlg, todo, } = props
     const dispatch = useDispatch()
     const dlgFormSchema = Yup.object().shape({
-        title: Yup.string().required('Please input title'),
+        title: Yup.string().required('请输入标题'),
         due: Yup.mixed()
     })
     const defaultValues = useMemo(() => ({ title: todo?.title || '', due: todo?.due ? dayjs(todo?.due) : undefined, description: todo?.description }), [todo])
@@ -66,15 +66,15 @@ export default function TodoEditDialog(props: ITodoEditDlgProps) {
     return <Dialog open={dlg.visible} maxWidth='xs' fullWidth>
         <DialogTitle>
             <Typography variant="h6">
-                {todo ? 'Edit Todo' : 'Add Todo'}
+                {todo ? '编辑 Todo' : '添加 Todo'}
             </Typography>
         </DialogTitle>
 
         <Box py={3} px={3}>
             <FormProvider methods={methods} onSubmit={methods.handleSubmit(onFormSubmit)}>
                 <Stack spacing={3}>
-                    <RHFTextField name='title' size="small" label="title" />
-                    <RHFTextField name='description' multiline rows={4} size="small" label="description" />
+                    <RHFTextField name='title' size="small" label="标题" />
+                    <RHFTextField name='description' multiline rows={4} size="small" label="描述" />
                     <Controller
                         name="due"
                         control={control}
@@ -83,7 +83,7 @@ export default function TodoEditDialog(props: ITodoEditDlgProps) {
                                 <DateTimePicker
                                     {...field}
                                     ampm={false}
-                                    label="Due Date"
+                                    label="截止日期"
                                 />
                             </LocalizationProvider>
 
@@ -93,7 +93,7 @@ export default function TodoEditDialog(props: ITodoEditDlgProps) {
                 </Stack>
                 <DialogActions>
                     <Button variant="outlined" color="inherit" onClick={handleCancel}  >
-                        Cancel
+                        取消
                     </Button>
 
                     <LoadingButton
@@ -102,7 +102,7 @@ export default function TodoEditDialog(props: ITodoEditDlgProps) {
                         loading={isSubmitting}
                         loadingIndicator="Loading..."
                     >
-                        Confirm
+                        确定
                     </LoadingButton>
                 </DialogActions>
 
